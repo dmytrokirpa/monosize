@@ -78,7 +78,7 @@ export const markdownReporter: Reporter = (report, options) => {
     // table — GFM tables can't span sub-rows, so interleaving <details>
     // mid-table would break parsing. One <details> block per changed entry
     // whose breakdown moved across more than one type — a single moved type
-    // would just duplicate the totals row, matching the cliReporter rule.
+    // would just duplicate the totals delta.
     const entriesWithBreakdown = changedEntries.flatMap(entry => {
       if (!entry.assetsDiff) {
         return [];

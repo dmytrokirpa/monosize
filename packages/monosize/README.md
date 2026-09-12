@@ -152,6 +152,15 @@ non-recursively, classifies files by extension against `assetTypes`, and
 reports a per-type breakdown alongside top-level totals. Threshold gates on
 totals only.
 
+The `measure` console table shows minified and GZIP totals followed by
+alphabetically sorted rows for every emitted, allowlisted asset type.
+The `compare-reports --output=cli` table shows baseline sizes, current sizes,
+and deltas for every asset type in each changed fixture, including unchanged
+types and types added or removed since the baseline. New fixtures and legacy
+reports without per-type baselines show `N/A` for those baseline sizes and
+omit per-type deltas. JavaScript remains the only measured type by default;
+set `assetTypes: ['js', 'css', 'json']` to include all supported types.
+
 To measure CSS or other non-JS assets, configure your bundler (via the
 adapter's config-enhancer callback) to extract them. monosize itself does
 not bundle a CSS plugin — install whatever your bundler needs (e.g.

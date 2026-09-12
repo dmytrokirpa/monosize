@@ -3,8 +3,9 @@ import { styleText } from 'node:util';
 
 import { getChangedEntriesInReport } from '../utils/getChangedEntriesInReport.mjs';
 import { formatBytes } from '../utils/helpers.mjs';
-import { hasMovedAssetDelta, type AssetDiff, type DiffByMetric } from '../utils/calculateDiff.mjs';
+import type { AssetDiff, DiffByMetric } from '../utils/calculateDiff.mjs';
 import type { ComparedReportEntry } from '../utils/compareResultsInReports.mjs';
+import type { AssetSize } from '../types.mjs';
 import { logger } from '../logger.mjs';
 import { formatDeltaFactory, type Reporter } from './shared.mjs';
 
@@ -23,8 +24,26 @@ function formatDelta(diff: DiffByMetric, deltaFormat: keyof DiffByMetric): strin
   return typeof output === 'string' ? output : styleText(color, output.deltaOutput + output.dirSymbol);
 }
 
+function buildSizeColumns(
+  size: AssetSize,
+  diff: AssetDiff | undefined,
+  deltaFormat: keyof DiffByMetric,
+  empty = false,
+): [string, string] {
+  const before = [
+    !diff || empty ? 'N/A' : formatBytes(size.minifiedSize - diff.minified.delta),
+    !diff || empty ? 'N/A' : formatBytes(size.gzippedSize - diff.gzip.delta),
+  ].join('\n');
+  const after = [
+    [diff && formatDelta(diff.minified, deltaFormat), formatBytes(size.minifiedSize)].filter(Boolean).join(' '),
+    [diff && formatDelta(diff.gzip, deltaFormat), formatBytes(size.gzippedSize)].filter(Boolean).join(' '),
+  ].join('\n');
+
+  return [before, after];
+}
+
 function buildEntryRow(entry: ComparedReportEntry, deltaFormat: keyof DiffByMetric): Row {
-  const { diff, gzippedSize, minifiedSize, name, packageName } = entry;
+  const { diff, name, packageName } = entry;
 
   const fixtureColumn = [
     styleText('bold', packageName),
@@ -34,40 +53,17 @@ function buildEntryRow(entry: ComparedReportEntry, deltaFormat: keyof DiffByMetr
     .filter(Boolean)
     .join('\n');
 
-  const minifiedBefore = diff.empty ? 'N/A' : formatBytes(minifiedSize - diff.minified.delta);
-  const gzippedBefore = diff.empty ? 'N/A' : formatBytes(gzippedSize - diff.gzip.delta);
-  const beforeColumn = [minifiedBefore, gzippedBefore].join('\n');
-
-  const minifiedAfter = formatDelta(diff.minified, deltaFormat) + ' ' + formatBytes(minifiedSize);
-  const gzippedAfter = formatDelta(diff.gzip, deltaFormat) + ' ' + formatBytes(gzippedSize);
-  const afterColumn = [minifiedAfter, gzippedAfter].join('\n');
-
-  return [fixtureColumn, beforeColumn, afterColumn];
+  return [fixtureColumn, ...buildSizeColumns(entry, diff, deltaFormat, diff.empty)];
 }
 
-/**
- * Per-asset-type sub-rows for a single fixture. One row per type whose
- * minified or gzip delta is non-zero, sorted lexicographically. Iterates
- * `Object.keys` so future-version JSON carrying unknown types (e.g. a
- * stored `assets.svg`) still surfaces. Returns `[]` when only a single
- * type changed — that sub-row would just duplicate the top-level total.
- */
-function buildBreakdownRows(assetsDiff: Record<string, AssetDiff> | undefined, deltaFormat: keyof DiffByMetric): Row[] {
-  if (!assetsDiff) return [];
+function buildBreakdownRows(entry: ComparedReportEntry, deltaFormat: keyof DiffByMetric): Row[] {
+  const assets: Record<string, AssetSize | undefined> = entry.assets ?? {};
+  // Include removed types and unknown types from reports written by newer versions.
+  const types = [...new Set([...Object.keys(assets), ...Object.keys(entry.assetsDiff ?? {})])].sort();
 
-  const changedTypes = Object.keys(assetsDiff)
-    .filter(t => hasMovedAssetDelta(assetsDiff[t]))
-    .sort();
-
-  if (changedTypes.length <= 1) return [];
-
-  return changedTypes.map(type => {
-    const d = assetsDiff[type];
-    return [
-      styleText('dim', `  ${type}`),
-      '',
-      [formatDelta(d.minified, deltaFormat), formatDelta(d.gzip, deltaFormat)].join('\n'),
-    ];
+  return types.map(type => {
+    const size = assets[type] ?? { minifiedSize: 0, gzippedSize: 0 };
+    return [styleText('dim', `  ${type}`), ...buildSizeColumns(size, entry.assetsDiff?.[type], deltaFormat)];
   });
 }
 
@@ -87,7 +83,7 @@ export const cliReporter: Reporter = (report, options) => {
 
   for (const entry of changedEntries) {
     table.push(buildEntryRow(entry, deltaFormat));
-    for (const row of buildBreakdownRows(entry.assetsDiff, deltaFormat)) {
+    for (const row of buildBreakdownRows(entry, deltaFormat)) {
       table.push(row);
     }
   }
