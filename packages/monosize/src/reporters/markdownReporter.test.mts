@@ -53,7 +53,7 @@ describe('markdownReporter', () => {
     expect(output).toMatchSnapshot();
   });
 
-  it('omits a Breakdown section when only a single asset type changed', async () => {
+  it('renders a Breakdown section for a single asset type', async () => {
     const log = vitest.spyOn(logger, 'raw').mockImplementation(noop);
 
     const jsOnlyReport: ComparedReport = [
@@ -79,9 +79,8 @@ describe('markdownReporter', () => {
     markdownReporter(jsOnlyReport, { ...options, showUnchanged: false });
     const output = await prettier.format(log.mock.calls[0][0] as string, { parser: 'markdown' });
 
-    // The single-type breakdown would just duplicate the totals row, so the
-    // section is suppressed (matches cliReporter).
-    expect(output).not.toContain('### Breakdown');
+    expect(output).toContain('### Breakdown');
+    expect(output).toContain('| `js`');
   });
 
   it('renders a report with exceeded threshold', async () => {

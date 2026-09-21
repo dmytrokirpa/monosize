@@ -36,6 +36,8 @@ function buildSizeColumns(
 ): [string, string] {
   const minifiedBefore = !diff || empty ? undefined : size.minifiedSize - diff.minified.delta;
   const gzippedBefore = !diff || empty ? undefined : size.gzippedSize - diff.gzip.delta;
+  // A new entry has no known baseline, so its top-level percentage is
+  // intentionally different from a known zero baseline, which uses bytes.
   const before = [minifiedBefore, gzippedBefore]
     .map(baseline => (baseline === undefined ? 'N/A' : formatBytes(baseline)))
     .join('\n');

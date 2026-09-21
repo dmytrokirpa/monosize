@@ -1,13 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { stripVTControlCharacters } from 'node:util';
 import { gzipSync } from 'node:zlib';
-import { assert, beforeEach, describe, expect, it, vitest } from 'vitest';
+import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import api, { type MeasureOptions } from './measure.mjs';
 import { logger } from '../logger.mjs';
 import { readConfig } from '../utils/readConfig.mjs';
 import type { BundlerAdapter } from '../types.mjs';
+import { tableRows } from '../__fixtures__/tableRows.mjs';
 
 /**
  * Materializes an `outputDir` next to the prepared fixture and writes the
@@ -211,17 +211,7 @@ describe('measure', () => {
       });
 
       expect(logSpy).toHaveBeenCalledTimes(2);
-      const output = logSpy.mock.calls[1][0];
-      assert(typeof output === 'string');
-      const rows = stripVTControlCharacters(output)
-        .split('\n')
-        .filter(line => line.startsWith('│'))
-        .map(line =>
-          line
-            .split('│')
-            .slice(1, -1)
-            .map(cell => cell.trim()),
-        );
+      const rows = tableRows(logSpy.mock.calls[1][0]);
       const jsGzip = gzipSync(js).length;
       const cssGzip = gzipSync(css).length;
       const jsonGzip = gzipSync(json).length;
@@ -248,9 +238,7 @@ describe('measure', () => {
         $0: 'monosize',
       });
 
-      const output = logSpy.mock.calls[1][0];
-      assert(typeof output === 'string');
-      expect(stripVTControlCharacters(output)).toContain(`│   ${type}`);
+      expect(tableRows(logSpy.mock.calls[1][0]).some(row => row[0] === type)).toBe(true);
     });
 
     it('does not log measurement tables in quiet mode', async () => {

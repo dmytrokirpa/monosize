@@ -1,27 +1,15 @@
 import stripAnsi from 'strip-ansi';
-import { assert, beforeEach, describe, it, expect, vitest } from 'vitest';
+import { beforeEach, describe, it, expect, vitest } from 'vitest';
 
 import { cliReporter } from './cliReporter.mjs';
 import { sampleComparedReport, reportWithExceededThreshold } from '../__fixtures__/sampleComparedReport.mjs';
 import { logger } from '../logger.mjs';
 import { compareResultsInReports, type ComparedReport } from '../utils/compareResultsInReports.mjs';
 import type { AssetSize, BundleSizeReportEntry } from '../types.mjs';
+import { tableRows } from '../__fixtures__/tableRows.mjs';
 
 function noop() {
   /* does nothing */
-}
-
-function tableRows(output: unknown): string[][] {
-  assert(typeof output === 'string');
-  return stripAnsi(output)
-    .split('\n')
-    .filter(line => line.startsWith('│'))
-    .map(line =>
-      line
-        .split('│')
-        .slice(1, -1)
-        .map(cell => cell.trim()),
-    );
 }
 
 // We are using "chalk" and "cli-table3" in this reporter, they are adding colors to the output via escape codes that
