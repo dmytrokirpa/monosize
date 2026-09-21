@@ -154,6 +154,8 @@ totals only.
 
 The `measure` console table shows minified and GZIP totals followed by
 alphabetically sorted rows for every emitted, allowlisted asset type.
+The per-type rows are emitted even when a fixture contains only one asset
+type, so measurement output consistently exposes the configured breakdown.
 The `compare-reports --output=cli` table shows baseline sizes, current sizes,
 and deltas for every asset type in each changed fixture, including unchanged
 types and types added or removed since the baseline. In percent mode, metrics
