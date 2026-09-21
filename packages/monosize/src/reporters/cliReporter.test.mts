@@ -66,14 +66,14 @@ describe('cliReporter', () => {
       ┌────────────────────┬────────┬───────────────────────┐
       │ Fixture            │ Before │ After (minified/GZIP) │
       ├────────────────────┼────────┼───────────────────────┤
-      │ baz-package        │    0 B │            100%↑ 1 kB │
-      │ An entry with diff │    0 B │           100%↑ 100 B │
+      │ baz-package        │    0 B │            1 kB↑ 1 kB │
+      │ An entry with diff │    0 B │          100 B↑ 100 B │
       ├────────────────────┼────────┼───────────────────────┤
-      │   css              │    0 B │           100%↑ 300 B │
-      │                    │    0 B │            100%↑ 30 B │
+      │   css              │    0 B │          300 B↑ 300 B │
+      │                    │    0 B │            30 B↑ 30 B │
       ├────────────────────┼────────┼───────────────────────┤
-      │   js               │    0 B │           100%↑ 700 B │
-      │                    │    0 B │            100%↑ 70 B │
+      │   js               │    0 B │          700 B↑ 700 B │
+      │                    │    0 B │            70 B↑ 70 B │
       ├────────────────────┼────────┼───────────────────────┤
       │ foo-package        │    N/A │            100%↑ 1 kB │
       │ New entry (new)    │    N/A │           100%↑ 100 B │
@@ -134,10 +134,10 @@ describe('cliReporter', () => {
 
     expect(tableRows(logSpy.mock.calls[0][0])).toEqual([
       ['Fixture', 'Before', 'After (minified/GZIP)'],
-      ['single-type-pkg', '0 B', '100%↑ 700 B'],
-      ['Single-type entry', '0 B', '100%↑ 70 B'],
-      [type, '0 B', '100%↑ 700 B'],
-      ['', '0 B', '100%↑ 70 B'],
+      ['single-type-pkg', '0 B', '700 B↑ 700 B'],
+      ['Single-type entry', '0 B', '70 B↑ 70 B'],
+      [type, '0 B', '700 B↑ 700 B'],
+      ['', '0 B', '70 B↑ 70 B'],
     ]);
   });
 
@@ -196,25 +196,70 @@ describe('cliReporter', () => {
       ]);
     });
 
-    it('shows added and removed types with zero on the absent side', () => {
+    it.each(['delta', 'percent'] as const)(
+      'shows added and removed types with zero on the absent side (%s)',
+      deltaFormat => {
+        expect(
+          renderAssetRows(
+            {
+              js: { minifiedSize: 100, gzippedSize: 10 },
+              json: { minifiedSize: 20, gzippedSize: 2 },
+            },
+            {
+              js: { minifiedSize: 100, gzippedSize: 10 },
+              css: { minifiedSize: 50, gzippedSize: 5 },
+            },
+            deltaFormat,
+          ),
+        ).toEqual([
+          ['css', '50 B', `${deltaFormat === 'delta' ? '-50 B' : '-100%'}↓ 0 B`],
+          ['', '5 B', `${deltaFormat === 'delta' ? '-5 B' : '-100%'}↓ 0 B`],
+          ['js', '100 B', '100 B'],
+          ['', '10 B', '10 B'],
+          ['json', '0 B', '20 B↑ 20 B'],
+          ['', '0 B', '2 B↑ 2 B'],
+        ]);
+      },
+    );
+
+    it.each([
+      {
+        baseline: { minifiedSize: 0, gzippedSize: 10 },
+        expected: [
+          ['css', '0 B', '20 B↑ 20 B'],
+          ['', '10 B', '100%↑ 20 B'],
+        ],
+      },
+      {
+        baseline: { minifiedSize: 10, gzippedSize: 0 },
+        expected: [
+          ['css', '10 B', '100%↑ 20 B'],
+          ['', '0 B', '20 B↑ 20 B'],
+        ],
+      },
+      {
+        baseline: { minifiedSize: 0, gzippedSize: 0 },
+        expected: [
+          ['css', '0 B', '20 B↑ 20 B'],
+          ['', '0 B', '20 B↑ 20 B'],
+        ],
+      },
+    ])('falls back to bytes independently for zero-baseline metrics ($baseline)', ({ baseline, expected }) => {
+      expect(renderAssetRows({ css: { minifiedSize: 20, gzippedSize: 20 } }, { css: baseline }, 'percent')).toEqual(
+        expected,
+      );
+    });
+
+    it('keeps unchanged zero-size metrics free of deltas in percent mode', () => {
       expect(
         renderAssetRows(
-          {
-            js: { minifiedSize: 100, gzippedSize: 10 },
-            json: { minifiedSize: 20, gzippedSize: 2 },
-          },
-          {
-            js: { minifiedSize: 100, gzippedSize: 10 },
-            css: { minifiedSize: 50, gzippedSize: 5 },
-          },
+          { css: { minifiedSize: 0, gzippedSize: 20 } },
+          { css: { minifiedSize: 0, gzippedSize: 10 } },
+          'percent',
         ),
       ).toEqual([
-        ['css', '50 B', '-50 B↓ 0 B'],
-        ['', '5 B', '-5 B↓ 0 B'],
-        ['js', '100 B', '100 B'],
-        ['', '10 B', '10 B'],
-        ['json', '0 B', '20 B↑ 20 B'],
-        ['', '0 B', '2 B↑ 2 B'],
+        ['css', '0 B', '0 B'],
+        ['', '10 B', '100%↑ 20 B'],
       ]);
     });
 

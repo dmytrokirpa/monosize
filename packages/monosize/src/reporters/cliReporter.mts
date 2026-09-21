@@ -17,8 +17,12 @@ function getDirectionSymbol(value: number): string {
   return '';
 }
 
-function formatDelta(diff: DiffByMetric, deltaFormat: keyof DiffByMetric): string {
-  const output = formatDeltaFactory(diff, { deltaFormat, directionSymbol: getDirectionSymbol });
+function formatDelta(diff: DiffByMetric, deltaFormat: keyof DiffByMetric, baseline: number | undefined): string {
+  const output = formatDeltaFactory(diff, {
+    // Percentage change from a zero baseline is undefined; show the byte delta instead.
+    deltaFormat: baseline === 0 ? 'delta' : deltaFormat,
+    directionSymbol: getDirectionSymbol,
+  });
   const color = diff.delta > 0 ? ('red' as const) : ('green' as const);
 
   return typeof output === 'string' ? output : styleText(color, output.deltaOutput + output.dirSymbol);
@@ -30,13 +34,18 @@ function buildSizeColumns(
   deltaFormat: keyof DiffByMetric,
   empty = false,
 ): [string, string] {
-  const before = [
-    !diff || empty ? 'N/A' : formatBytes(size.minifiedSize - diff.minified.delta),
-    !diff || empty ? 'N/A' : formatBytes(size.gzippedSize - diff.gzip.delta),
-  ].join('\n');
+  const minifiedBefore = !diff || empty ? undefined : size.minifiedSize - diff.minified.delta;
+  const gzippedBefore = !diff || empty ? undefined : size.gzippedSize - diff.gzip.delta;
+  const before = [minifiedBefore, gzippedBefore]
+    .map(baseline => (baseline === undefined ? 'N/A' : formatBytes(baseline)))
+    .join('\n');
   const after = [
-    [diff && formatDelta(diff.minified, deltaFormat), formatBytes(size.minifiedSize)].filter(Boolean).join(' '),
-    [diff && formatDelta(diff.gzip, deltaFormat), formatBytes(size.gzippedSize)].filter(Boolean).join(' '),
+    [diff && formatDelta(diff.minified, deltaFormat, minifiedBefore), formatBytes(size.minifiedSize)]
+      .filter(Boolean)
+      .join(' '),
+    [diff && formatDelta(diff.gzip, deltaFormat, gzippedBefore), formatBytes(size.gzippedSize)]
+      .filter(Boolean)
+      .join(' '),
   ].join('\n');
 
   return [before, after];

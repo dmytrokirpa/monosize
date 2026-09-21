@@ -156,8 +156,10 @@ The `measure` console table shows minified and GZIP totals followed by
 alphabetically sorted rows for every emitted, allowlisted asset type.
 The `compare-reports --output=cli` table shows baseline sizes, current sizes,
 and deltas for every asset type in each changed fixture, including unchanged
-types and types added or removed since the baseline. New fixtures and legacy
-reports without per-type baselines show `N/A` for those baseline sizes and
+types and types added or removed since the baseline. In percent mode, metrics
+with a zero baseline show byte deltas instead, since percentage growth from
+zero is undefined. New fixtures and legacy reports without per-type baselines
+show `N/A` for those baseline sizes and
 omit per-type deltas. JavaScript remains the only measured type by default;
 set `assetTypes: ['js', 'css', 'json']` to include all supported types.
 
