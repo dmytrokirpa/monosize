@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vitest } from 'vitest';
 import { reportWithExceededThreshold, sampleComparedReport } from '../__fixtures__/sampleComparedReport.mjs';
 import { logger } from '../logger.mjs';
 import { markdownReporter } from './markdownReporter.mjs';
-import type { ComparedReport } from '../utils/compareResultsInReports.mjs';
+import { compareResultsInReports, type ComparedReport } from '../utils/compareResultsInReports.mjs';
+import type { BundleSizeReportEntry } from '../types.mjs';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
@@ -90,5 +91,24 @@ describe('markdownReporter', () => {
     const output = await prettier.format(log.mock.calls[0][0] as string, { parser: 'markdown' });
 
     expect(output).toMatchSnapshot();
+  });
+
+  it('falls back to byte deltas for totals with a zero baseline', async () => {
+    const log = vitest.spyOn(logger, 'raw').mockImplementation(noop);
+    const entry = (minifiedSize: number, gzippedSize: number): BundleSizeReportEntry => ({
+      packageName: 'zero-baseline-pkg',
+      name: 'zero-baseline-entry',
+      path: 'zero-baseline.fixture.js',
+      minifiedSize,
+      gzippedSize,
+      assets: { js: { minifiedSize, gzippedSize } },
+    });
+    const report = compareResultsInReports([entry(20, 2)], [entry(0, 0)], { type: 'size', size: 1000 });
+
+    markdownReporter(report, { ...options, deltaFormat: 'percent' });
+    const output = await prettier.format(log.mock.calls[0][0] as string, { parser: 'markdown' });
+
+    expect(output).toContain('| `20 B`<br />`2 B` |');
+    expect(output).not.toContain('0%');
   });
 });

@@ -34,10 +34,10 @@ exports[`markdownReporter > renders a report to a file 1`] = `
 exports[`markdownReporter > renders a report to a file with specified "deltaFormat" 1`] = `
 "## 📊 Bundle size report
 
-| Package & Exports                                                                      | Baseline (minified/GZIP) |                  PR |                                                                                                                                                                                                 Change |
-| :------------------------------------------------------------------------------------- | -----------------------: | ------------------: | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <samp>baz-package</samp> <br /> <abbr title='baz.fixture.js'>An entry with diff</abbr> |         \`0 B\`<br />\`0 B\` | \`1 kB\`<br />\`100 B\` | \`100%\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /><br />\`100%\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /> |
-| <samp>foo-package</samp> <br /> <abbr title='foo.fixture.js'>New entry</abbr>          |         \`0 B\`<br />\`0 B\` | \`1 kB\`<br />\`100 B\` |                                                                                                                                                                                           🆕 New entry |
+| Package & Exports                                                                      | Baseline (minified/GZIP) |                  PR |                                                                                                                                                                                                  Change |
+| :------------------------------------------------------------------------------------- | -----------------------: | ------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <samp>baz-package</samp> <br /> <abbr title='baz.fixture.js'>An entry with diff</abbr> |         \`0 B\`<br />\`0 B\` | \`1 kB\`<br />\`100 B\` | \`1 kB\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /><br />\`100 B\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /> |
+| <samp>foo-package</samp> <br /> <abbr title='foo.fixture.js'>New entry</abbr>          |         \`0 B\`<br />\`0 B\` | \`1 kB\`<br />\`100 B\` |                                                                                                                                                                                            🆕 New entry |
 
 ### Breakdown
 
@@ -65,9 +65,9 @@ exports[`markdownReporter > renders a report to a file with specified "deltaForm
 exports[`markdownReporter > renders a report with exceeded threshold 1`] = `
 "## 📊 Bundle size report
 
-| Package & Exports                                                                                               | Baseline (minified/GZIP) |                  PR |                                                                                                                                                                                                 Change |
-| :-------------------------------------------------------------------------------------------------------------- | -----------------------: | ------------------: | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-| <samp>baz-package</samp> <br /> <abbr title='baz.fixture.js'>An entry with diff</abbr> <br /> ⚠️ over threshold |         \`0 B\`<br />\`0 B\` | \`1 kB\`<br />\`100 B\` | \`100%\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /><br />\`100%\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /> |
+| Package & Exports                                                                                               | Baseline (minified/GZIP) |                  PR |                                                                                                                                                                                                  Change |
+| :-------------------------------------------------------------------------------------------------------------- | -----------------------: | ------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <samp>baz-package</samp> <br /> <abbr title='baz.fixture.js'>An entry with diff</abbr> <br /> ⚠️ over threshold |         \`0 B\`<br />\`0 B\` | \`1 kB\`<br />\`100 B\` | \`1 kB\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /><br />\`100 B\` <img aria-hidden="true" src="https://microsoft.github.io/monosize/images/increase.png" /> |
 
 ### Breakdown
 

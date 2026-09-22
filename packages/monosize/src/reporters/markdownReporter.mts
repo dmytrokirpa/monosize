@@ -68,9 +68,9 @@ export const markdownReporter: Reporter = (report, options) => {
       const difference = entry.diff.empty
         ? '🆕 New entry'
         : [
-            `${formatDelta(entry.diff.minified, deltaFormat)}`,
+            `${formatDelta(entry.diff.minified, deltaFormat, entry.minifiedSize - entry.diff.minified.delta)}`,
             '<br />',
-            `${formatDelta(entry.diff.gzip, deltaFormat)}`,
+            `${formatDelta(entry.diff.gzip, deltaFormat, entry.gzippedSize - entry.diff.gzip.delta)}`,
           ].join('');
 
       reportOutput.push(`| ${name} | ${before} | ${after} | ${difference}|`);
